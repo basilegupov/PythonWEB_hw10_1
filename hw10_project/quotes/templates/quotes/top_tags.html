@@ -1,0 +1,18 @@
+{% extends 'quotes/base.html' %}
+
+{% block tags %}
+    <h2>Top Ten tags</h2>
+    <ul>
+        {% for tag in top_tags %}
+            <li><a href="{% url 'quotes:tag_page' tag_name=tag.name %}">{{ tag.name }}</a> ({{ tag.num_quotes }})</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+{% block tags %}   
+    {% for tag in tags10 %}
+        <span class="tag-item">
+            <a class="tag" href="/tag/{{ tag.name }}/">{{ tag.name }}</a>
+        </span>
+    {% endfor %}
+{% endblock %}
