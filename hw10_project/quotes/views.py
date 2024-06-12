@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.db.models import Count
+from django.db import connection
 from django.core.paginator import Paginator
 
 from .utils import get_mongodb
@@ -11,7 +12,12 @@ from django.contrib.auth.decorators import login_required
 
 def main(request, page=1, num_tags=10):
     db = get_mongodb()
+    # db = connection.cursor()
+    # print(db)
     quotes = db.quotes.find()
+    # data = Quote.objects.all().order_by('-created_at')
+    # quotes = [quote.__dict__ for quote in data]
+    # print(str(quotes), list(quotes))
     per_page = 10
     paginator = Paginator(list(quotes), per_page)
     quotes_on_page = paginator.page(page)
@@ -30,6 +36,10 @@ def main(request, page=1, num_tags=10):
 def author_about(request, author_id, num_tags=10):
     db = get_mongodb()
     author = db.authors.find_one({'_id': ObjectId(author_id)})
+    print(author)
+    # author = Author.objects.get(id=author_id)
+    tags = Tag.objects.annotate(num_quotes=Count('quote')).order_by('-num_quotes')[:num_tags]
+    return render(request, 'quotes/author.html', context={'author': author, 'tags10': tags})
     tags = Tag.objects.annotate(num_quotes=Count('quote')).order_by('-num_quotes')[:num_tags]
     return render(request, 'quotes/author.html', context={'author': author, 'tags10': tags})
 
@@ -75,7 +85,6 @@ def add_quote(request):
     if request.method == 'POST':
         form = QuoteForm(request.POST)
         if form.is_valid():
-
             new_quote = form.save(commit=False)
             new_quote.user = request.user
             # Получаем объект Author из формы
